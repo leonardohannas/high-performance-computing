@@ -1,12 +1,3 @@
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <omp.h>
-
-#include "stats.h"
-#include "utils.h"
-
 #define MEMORY_ALLOCATION_ERROR 1
 #include <locale.h>
 #include <stdio.h>
