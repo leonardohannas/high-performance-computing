@@ -1,6 +1,11 @@
 CC = gcc
 CFLAGS = -Wall -O2 -D_POSIX_C_SOURCE=200809L
-LDFLAGS = -lm -lrt
+LDFLAGS = -lm
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+LDFLAGS += -lrt
+endif
 
 SEQ_TARGET = studentsseq
 PAR_TARGET = studentspar
