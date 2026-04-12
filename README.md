@@ -1,15 +1,44 @@
 # High Performance Computing
 
-Repositório para trabalhos e projetos da disciplina de Computação de Alto Desempenho.
+Repositório para o trabalho prático da disciplina de Computação de Alto Desempenho.
 
-## Estrutura
+## Estrutura do projeto
 
-- `tb1/`: arquivos do Primeiro Trabalho Prático
-- `src/`: códigos fonte em C
-- `docs/`: enunciado, apêndices e relatório em PDF
-- `tests/`: arquivos de teste
-- `scripts/`: scripts auxiliares
-- `submission/`: arquivos finais para entrega
+high-performance-computing/
+├── .vscode/
+├── docs/
+│   ├── apendice_a.pdf
+│   ├── apendice_b_modelo_relatorio.pdf
+│   ├── enunciado.pdf
+│   └── exemplo_entrada_0.txt
+├── scripts/
+│   └── package_submission.sh
+├── src/
+│   ├── studentspar.c
+│   └── studentsseq.c
+├── submission/
+├── tests/
+├── .gitignore
+└── README.md
+
+## Descrição das pastas
+
+- `src/`: contém os arquivos-fonte em C do trabalho
+  - `studentsseq.c`: implementação sequencial
+  - `studentspar.c`: implementação paralela
+
+- `docs/`: contém os materiais de apoio e referência do trabalho
+  - `enunciado.pdf`: enunciado principal
+  - `apendice_a.pdf`: material complementar do Apêndice A
+  - `apendice_b_modelo_relatorio.pdf`: modelo esperado para o relatório
+  - `exemplo_entrada_0.txt`: arquivo de exemplo de entrada
+
+- `scripts/`: contém scripts auxiliares do projeto
+  - `package_submission.sh`: script para organizar os arquivos exigidos na entrega final e gerar o `.zip`
+
+- `submission/`: contém os arquivos finais preparados para submissão no e-disciplinas
+
+- `tests/`: espaço reservado para testes adicionais, arquivos de entrada e validações
 
 ## Sobre o arquivo `package_submission.sh`
 
@@ -17,33 +46,41 @@ O arquivo `package_submission.sh` é um script de shell usado para automatizar a
 
 O nome significa:
 
-- `package`: empacotar / organizar os arquivos
-- `submission`: submissão / entrega
+- `package`: empacotar ou organizar os arquivos
+- `submission`: submissão ou entrega
 - `.sh`: script de shell executado no terminal
 
-Na prática, esse script pode:
+Na prática, esse script:
 
-1. copiar os arquivos exigidos pelo professor, como `studentsseq.c`, `studentspar.c` e `respostas.pdf`
-2. colocá-los em uma pasta final de entrega
-3. gerar um arquivo `.zip` pronto para submissão no e-disciplinas
+1. copia os arquivos exigidos pelo professor para a pasta de entrega
+2. organiza esses arquivos com os nomes esperados
+3. gera um arquivo `.zip` pronto para submissão
 
-Isso ajuda a evitar erros, como esquecer arquivos, usar nomes incorretos ou gerar um `.zip` com conteúdo desnecessário.
+Isso ajuda a evitar erros como:
 
-## Exemplo
+- esquecer arquivos na entrega
+- usar nomes incorretos
+- zipar arquivos desnecessários
+- montar a submissão manualmente toda vez
 
-Se os arquivos do trabalho estiverem organizados assim:
+## Arquivos esperados para a entrega
 
-- `src/studentsseq.c`
-- `src/studentspar.c`
-- `docs/respostas.pdf`
+De acordo com o enunciado, a entrega final deve conter:
 
-o script pode copiá-los para a pasta `submission/` e gerar algo como:
+- `studentsseq.c`
+- `studentspar.c`
+- `respostas.pdf`
 
-- `submission/studentsseq.c`
-- `submission/studentspar.c`
-- `submission/respostas.pdf`
-- `submission/tb1_entrega.zip`
+Esses arquivos devem ser compactados em um único arquivo `.zip`.
 
-## Observação
+## Como usar o script de entrega
 
-O uso desse script não é obrigatório. Ele existe apenas para facilitar a organização e a geração da entrega final.
+Primeiro, certifique-se de que o relatório final esteja salvo como:
+
+`docs/respostas.pdf`
+
+Depois, no terminal, a partir da raiz do repositório, execute:
+
+```bash
+chmod +x scripts/package_submission.sh
+./scripts/package_submission.sh
