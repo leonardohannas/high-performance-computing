@@ -62,6 +62,8 @@ A versao paralela agora usa OpenMP em fases independentes:
 
 A agregacao Brasil permanece sequencial por custo/beneficio (overhead de fork/join nao compensa).
 
+Se uma alocacao de buffer local falhar dentro de uma regiao paralela, o programa aborta imediatamente. Isso evita violar a semantica do `omp for` e elimina risco de deadlock por threads que entram em caminhos diferentes dentro da mesma equipe.
+
 ### 4. Geração de notas thread-safe
 
 Na versao paralela:
@@ -88,6 +90,7 @@ Nas regioes paralelas de agregacao:
 1. Cada thread aloca buffer temporario apenas uma vez por fase.
 2. Evita `malloc/free` por elemento processado.
 3. Reduz pressao no heap em cargas altas.
+4. Se a alocacao falhar, o processo aborta para manter a execucao consistente.
 
 ### 7. Build portavel e orientado a desempenho
 
@@ -103,9 +106,9 @@ No [src/Makefile](../src/Makefile):
 ## Sequencial ([src/studentsseq.c](../src/studentsseq.c))
 
 1. Fluxo linear (um nucleo)
-2. Matriz alocada como vetor de ponteiros para linhas
+2. Matriz alocada como bloco 1D contiguo, igual a versao paralela
 3. Buffers de mediana reutilizados por fase
-4. Determinismo de `rand` por estado global
+4. Geração de notas sequencial sem concorrencia
 
 ## Paralelo ([src/studentspar.c](../src/studentspar.c))
 
@@ -113,15 +116,18 @@ No [src/Makefile](../src/Makefile):
 2. Matriz contigua 1D
 3. `rand_r` com estado local por iteracao
 4. Buffer temporario por thread em cada fase
+5. Falha imediata em caso de erro de alocacao dentro das regioes paralelas
 
 ## Impacto Esperado em Desempenho
 
 Para tamanhos grandes de entrada (N alto):
 
 1. Reducao de tempo total na versao paralela
-2. Menor overhead de alocacao por remocao de malloc interno em `calculate_stats`
+2. Menor overhead de alocacao por uso de buffers reutilizaveis no chamador
 3. Melhor uso de cache no caminho paralelo
 4. Ganho adicional por auto-vetorizacao no compilador
+
+Como o baseline sequencial tambem usa matriz 1D contigua, a comparacao de speedup fica mais justa e reflete melhor o ganho do paralelismo, nao de um layout de memoria diferente.
 
 ## Como Reproduzir Benchmark
 

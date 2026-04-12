@@ -24,41 +24,21 @@ void read_input_file(const char *filename, int *R, int *C, int *A, int *N, int *
     fclose(f);
 }
 
-float **allocate_matrix(int total_students, int N) {
-    float **matrix_student_grade = (float **)malloc(sizeof(float *) * (size_t)total_students);
+float *allocate_matrix(int total_students, int N) {
+    float *matrix_student_grade = (float *)malloc(sizeof(float) * (size_t)(total_students * N));
     if (matrix_student_grade == NULL) {
         printf("Erro ao alocar memoria para a matriz de notas dos alunos!\n");
         return NULL;
     }
-
-    for (int i = 0; i < total_students; i++) {
-        matrix_student_grade[i] = (float *)malloc(sizeof(float) * (size_t)N);
-        if (matrix_student_grade[i] == NULL) {
-            printf("Erro ao alocar memoria para a linha %d da matriz de notas dos alunos!\n", i);
-            for (int j = 0; j < i; j++) {
-                free(matrix_student_grade[j]);
-            }
-            free(matrix_student_grade);
-            return NULL;
-        }
-    }
-
     return matrix_student_grade;
 }
 
-void free_matrix(float **matrix, int total_students) {
-    for (int i = 0; i < total_students; i++) {
-        free(matrix[i]);
-    }
-    free(matrix);
-}
-
-void populate_matrix(float **matrix, int total_students, int N, int seed) {
+void populate_matrix(float *matrix, int total_students, int N, int seed) {
     srand(seed);
     for (int i = 0; i < total_students; i++) {
         for (int j = 0; j < N; j++) {
             int r = rand() % 1001;
-            matrix[i][j] = r / 10.0f;
+            matrix[i * N + j] = r / 10.0f;
         }
     }
 }
@@ -72,7 +52,7 @@ int main(void) {
     int total_cities = R * C;
     int total_students = R * C * A;
 
-    float **matrix_student_grade = allocate_matrix(total_students, N);
+    float *matrix_student_grade = allocate_matrix(total_students, N);
     if (matrix_student_grade == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
@@ -100,14 +80,14 @@ int main(void) {
         free(city_buffer);
         free(region_buffer);
         free(brasil_buffer);
-        free_matrix(matrix_student_grade, total_students);
+        free(matrix_student_grade);
         return MEMORY_ALLOCATION_ERROR;
     }
 
     timer_start();
 
     for (int s = 0; s < total_students; s++) {
-        calculate_stats(matrix_student_grade[s], N, &student_stats[s], student_buffer);
+        calculate_stats(&matrix_student_grade[s * N], N, &student_stats[s], student_buffer);
         all_student_means[s] = student_stats[s].mean;
     }
 
@@ -135,6 +115,6 @@ int main(void) {
     free(city_buffer);
     free(region_buffer);
     free(brasil_buffer);
-    free_matrix(matrix_student_grade, total_students);
+    free(matrix_student_grade);
     return 0;
 }
