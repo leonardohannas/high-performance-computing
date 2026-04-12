@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define MEMORY_ALLOCATION_ERROR 1
+#define INPUT_FILE_PATH "../docs/exemplo_entrada_0.txt"
 
 
 void read_input_file(const char* filename, int* R, int* C, int* A, int* N, int* T, int* seed) {
@@ -34,25 +35,66 @@ void** allocate_matrix(int R, int C, int A, int N) {
     }
 
     return matrix_student_grade;
-
 }
 
+void free_matrix(void** matrix, int R, int C, int A) {
+    for (int i = 0; i < R * C * A; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+
+void populate_matrix(void** matrix, int R, int C, int A, int N, int seed) {
+    srand(seed);
+    for (int i = 0; i < R * C * A; i++) {
+        for (int j = 0; j < N; j++) {
+            int r = rand() % 1001;   // inteiro entre 0 e 1000
+            ((int*)matrix[i])[j] = r / 10.0;
+        }
+    }
+}
 
 
 
 int main(int argc, char* argv[]) {
 
     int R, C, A, N, T, seed;
-    read_input_file("../docs/exemplo_entrada_0.txt", &R, &C, &A, &N, &T, &seed);
+    read_input_file(INPUT_FILE_PATH, &R, &C, &A, &N, &T, &seed);
  
-    void** matrix_student_grade = (void**) allocate_matrix(R, C, A, N);
+    void** matrix_student_grade;
+    matrix_student_grade = (void**) allocate_matrix(R, C, A, N);
     if (matrix_student_grade == (void**) MEMORY_ALLOCATION_ERROR) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
+    populate_matrix(matrix_student_grade, R, C, A, N, seed);
 
 
+    for (int i = 0; i < R * C * A; i++) {
+        printf("Student %d: ", i);
+        for (int j = 0; j < N; j++) {
+            printf("%.1f ", ((int*)matrix_student_grade[i])[j]);
+        }
+        printf("\n");
+    }
+
+
+
+
+
+    free_matrix(matrix_student_grade, R, C, A);
     return 0;
+
+
+
+
+
+
+
+
+
+    
 
 }
 
