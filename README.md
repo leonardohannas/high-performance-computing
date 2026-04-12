@@ -21,6 +21,7 @@ high-performance-computing/
 ├── tests/
 ├── .gitignore
 └── README.md
+```
 
 ## Descrição das pastas
 
