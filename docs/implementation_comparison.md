@@ -45,11 +45,13 @@ Foi adotada a estrategia de facilitar auto-vetorizacao do compilador:
 1. `restrict` na API de estatistica para reduzir aliasing ambiguo.
 2. `#pragma GCC ivdep` no loop de copia para `temp_buffer`.
 3. Build com `-O3` (configuravel no Makefile).
+4. `-march=native` e `-ffast-math` para permitir uso das instrucoes matematicas e vetoriais reais da CPU alvo.
 
 Importante:
 
 1. Nao foram usados intrinsics manuais (AVX/SSE/NEON explicitos).
 2. A abordagem usa auto-vetorizacao orientada por compilador.
+3. O ganho esperado vem da combinacao de alinhamento, aliasing reduzido e contratacao de operacoes de ponto flutuante.
 
 ### 3. Paralelizacao com OpenMP em [src/studentspar.c](../src/studentspar.c)
 
@@ -82,6 +84,7 @@ A matriz de notas da versao paralela foi convertida para bloco 1D contiguo:
 1. Melhor localidade de cache
 2. Menos indirecoes de ponteiro
 3. Melhor oportunidade de prefetch e vetorizacao do compilador
+4. Alinhamento em linha de cache com `aligned_alloc(64, ...)`
 
 ### 6. Buffers locais por thread
 
@@ -150,3 +153,11 @@ Para teste local em maquina alvo, habilitar arquitetura nativa:
 2. `make NATIVEFLAGS='-march=native' build`
 
 Isso pode aumentar desempenho, mas reduz portabilidade binaria entre CPUs diferentes.
+
+## Execucao Recomendada
+
+Para medir o paralelo com afinidade de threads, usar:
+
+`OMP_PROC_BIND=true OMP_PLACES=cores ./studentspar`
+
+Isso reduz migracao de threads entre nucleos e ajuda a preservar cache local durante a execucao.

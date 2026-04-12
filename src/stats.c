@@ -41,12 +41,17 @@ void calculate_stats(const float *restrict data, int n, Stats *restrict out_stat
     if (n <= 0)
         return;
 
+    const int prefetch_distance = 16;
     float min_val = data[0];
     float max_val = data[0];
     float mean = 0.0f;
     float M2 = 0.0f;
 
     for (int i = 0; i < n; i++) {
+        if (i + prefetch_distance < n) {
+            __builtin_prefetch(&data[i + prefetch_distance], 0, 0);
+        }
+
         float x = data[i];
 
         min_val = (x < min_val) ? x : min_val;
@@ -55,7 +60,7 @@ void calculate_stats(const float *restrict data, int n, Stats *restrict out_stat
         float delta = x - mean;
         mean += delta / (i + 1);
         float delta2 = x - mean;
-        M2 += delta * delta2;
+        M2 = fmaf(delta, delta2, M2);
     }
 
     out_stats->min = min_val;

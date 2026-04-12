@@ -1,6 +1,6 @@
 CC = gcc
 OPTFLAGS ?= -O3
-NATIVEFLAGS ?=
+NATIVEFLAGS ?= -march=native -ffast-math
 CFLAGS = -Wall $(OPTFLAGS) $(NATIVEFLAGS) -D_POSIX_C_SOURCE=200809L
 OMPFLAGS = -fopenmp
 LDFLAGS = -lm
