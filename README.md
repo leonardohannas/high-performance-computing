@@ -4,6 +4,7 @@ Repositório para o trabalho prático da disciplina de Computação de Alto Dese
 
 ## Estrutura do projeto
 
+```text
 high-performance-computing/
 ├── .vscode/
 ├── docs/
