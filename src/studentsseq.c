@@ -17,25 +17,38 @@ void read_input_file(const char* filename, int* R, int* C, int* A, int* N, int* 
     fclose(f);
 }
 
+void** allocate_matrix(int R, int C, int A, int N) {
+
+    void** matrix_student_grade = (void**) malloc(sizeof(void*) * R * C * A);
+    if (matrix_student_grade == NULL) {
+        printf("Erro ao alocar memória para a matriz de notas dos alunos!\n");
+        return (void**) MEMORY_ALLOCATION_ERROR;
+    }
+
+    for (int i = 0; i < R * C * A; i++) {
+        matrix_student_grade[i] = malloc(sizeof(void) * N);
+        if (matrix_student_grade[i] == NULL) {
+            printf("Erro ao alocar memória para a linha %d da matriz de notas dos alunos!\n", i);
+            return (void**) MEMORY_ALLOCATION_ERROR;
+        }
+    }
+
+    return matrix_student_grade;
+
+}
+
+
+
 
 int main(int argc, char* argv[]) {
 
     int R, C, A, N, T, seed;
     read_input_file("../docs/exemplo_entrada_0.txt", &R, &C, &A, &N, &T, &seed);
  
-
-    // int** matrix_student_grade = (int**) malloc(sizeof(int*) * R * C * A);
-    // if (matrix_student_grade == NULL) {
-    //     printf("Erro ao alocar memória para a matriz de notas dos alunos!\n");
-    //     return MEMORY_ALLOCATION_ERROR;
-    // }
-    // for (int i = 0; i < R * C * A; i++) {
-    //     matrix_student_grade[i] = (int*) malloc(sizeof(int) * N);
-    //     if (matrix_student_grade[i] == NULL) {
-    //         printf("Erro ao alocar memória para a linha %d da matriz de notas dos alunos!\n", i);
-    //         return MEMORY_ALLOCATION_ERROR;
-    //     }
-    // }
+    void** matrix_student_grade = (void**) allocate_matrix(R, C, A, N);
+    if (matrix_student_grade == (void**) MEMORY_ALLOCATION_ERROR) {
+        return MEMORY_ALLOCATION_ERROR;
+    }
 
 
 
