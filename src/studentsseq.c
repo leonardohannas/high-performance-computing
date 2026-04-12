@@ -50,8 +50,7 @@ void populate_matrix(void** matrix, int R, int C, int A, int N, int seed) {
     for (int i = 0; i < R * C * A; i++) {
         for (int j = 0; j < N; j++) {
             int r = rand() % 1001;   // inteiro entre 0 e 1000
-            ((int*)matrix[i])[j] = r;
-            ((float*)matrix[i])[j] = r / 10.0;
+            ((float*) matrix[i])[j] = r / 10.0;
         }
     }
 }
