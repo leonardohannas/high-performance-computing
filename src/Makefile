@@ -1,5 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -O2 -D_POSIX_C_SOURCE=200809L
+OPTFLAGS ?= -O3
+NATIVEFLAGS ?=
+CFLAGS = -Wall $(OPTFLAGS) $(NATIVEFLAGS) -D_POSIX_C_SOURCE=200809L
+OMPFLAGS = -fopenmp
 LDFLAGS = -lm
 
 UNAME_S := $(shell uname -s)
@@ -33,10 +36,10 @@ $(SEQ_OBJ): $(SEQ_SRC) stats.h utils.h
 	$(CC) $(CFLAGS) -c $(SEQ_SRC)
 
 $(PAR_TARGET): $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ)
-	$(CC) $(CFLAGS) -o $(PAR_TARGET) $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OMPFLAGS) -o $(PAR_TARGET) $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ) $(LDFLAGS)
 
 $(PAR_OBJ): $(PAR_SRC) stats.h utils.h
-	$(CC) $(CFLAGS) -c $(PAR_SRC)
+	$(CC) $(CFLAGS) $(OMPFLAGS) -c $(PAR_SRC)
 
 $(STATS_OBJ): $(STATS_SRC) stats.h
 	$(CC) $(CFLAGS) -c $(STATS_SRC)

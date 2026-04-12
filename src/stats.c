@@ -37,7 +37,7 @@ static float quickselect(float *arr, int left, int right, int k) {
     }
 }
 
-void calculate_stats(const float *data, int n, Stats *out_stats) {
+void calculate_stats(const float *restrict data, int n, Stats *restrict out_stats, float *restrict temp_buffer) {
     if (n <= 0)
         return;
 
@@ -63,24 +63,20 @@ void calculate_stats(const float *data, int n, Stats *out_stats) {
     out_stats->mean = mean;
     out_stats->stddev = sqrtf(M2 / n);
 
-    float *temp_data = (float *)malloc(n * sizeof(float));
-    if (temp_data == NULL) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        exit(EXIT_FAILURE);
-    }
-
+    // Hint to the compiler that this straight-line copy loop is safe to vectorize.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC ivdep
+#endif
     for (int i = 0; i < n; i++) {
-        temp_data[i] = data[i];
+        temp_buffer[i] = data[i];
     }
 
     int mid = n / 2;
     if (n % 2 != 0) {
-        out_stats->median = quickselect(temp_data, 0, n - 1, mid);
+        out_stats->median = quickselect(temp_buffer, 0, n - 1, mid);
     } else {
-        float m1 = quickselect(temp_data, 0, n - 1, mid - 1);
-        float m2 = quickselect(temp_data, mid, n - 1, mid);
+        float m1 = quickselect(temp_buffer, 0, n - 1, mid - 1);
+        float m2 = quickselect(temp_buffer, mid, n - 1, mid);
         out_stats->median = (m1 + m2) / 2.0f;
     }
-
-    free(temp_data);
 }

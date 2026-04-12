@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <omp.h>
+
 #include "stats.h"
 #include "utils.h"
 
@@ -24,41 +26,23 @@ void read_input_file(const char *filename, int *R, int *C, int *A, int *N, int *
     fclose(f);
 }
 
-float **allocate_matrix(int total_students, int N) {
-    float **matrix_student_grade = (float **)malloc(sizeof(float *) * (size_t)total_students);
+float *allocate_matrix(int total_students, int N) {
+    float *matrix_student_grade = (float *)malloc(sizeof(float) * (size_t)(total_students * N));
     if (matrix_student_grade == NULL) {
         printf("Erro ao alocar memoria para a matriz de notas dos alunos!\n");
         return NULL;
     }
-
-    for (int i = 0; i < total_students; i++) {
-        matrix_student_grade[i] = (float *)malloc(sizeof(float) * (size_t)N);
-        if (matrix_student_grade[i] == NULL) {
-            printf("Erro ao alocar memoria para a linha %d da matriz de notas dos alunos!\n", i);
-            for (int j = 0; j < i; j++) {
-                free(matrix_student_grade[j]);
-            }
-            free(matrix_student_grade);
-            return NULL;
-        }
-    }
-
     return matrix_student_grade;
 }
 
-void free_matrix(float **matrix, int total_students) {
+void populate_matrix(float *matrix, int total_students, int N, int seed) {
+#pragma omp parallel for default(none) shared(matrix, total_students, N, seed)
     for (int i = 0; i < total_students; i++) {
-        free(matrix[i]);
-    }
-    free(matrix);
-}
+        unsigned int local_seed = (unsigned int)(seed + i);
 
-void populate_matrix(float **matrix, int total_students, int N, int seed) {
-    srand(seed);
-    for (int i = 0; i < total_students; i++) {
         for (int j = 0; j < N; j++) {
-            int r = rand() % 1001;
-            matrix[i][j] = r / 10.0f;
+            int r = rand_r(&local_seed) % 1001;
+            matrix[i * N + j] = r / 10.0f;
         }
     }
 }
@@ -69,10 +53,12 @@ int main(void) {
     int R, C, A, N, T, seed;
     read_input_file(INPUT_FILE_PATH, &R, &C, &A, &N, &T, &seed);
 
+    omp_set_num_threads(T);
+
     int total_cities = R * C;
     int total_students = R * C * A;
 
-    float **matrix_student_grade = allocate_matrix(total_students, N);
+    float *matrix_student_grade = allocate_matrix(total_students, N);
     if (matrix_student_grade == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
@@ -91,27 +77,101 @@ int main(void) {
         free(city_stats);
         free(region_stats);
         free(all_student_means);
-        free_matrix(matrix_student_grade, total_students);
+        free(matrix_student_grade);
         return MEMORY_ALLOCATION_ERROR;
     }
 
     timer_start();
 
-    for (int s = 0; s < total_students; s++) {
-        calculate_stats(matrix_student_grade[s], N, &student_stats[s]);
-        all_student_means[s] = student_stats[s].mean;
+    int alloc_failed = 0;
+#pragma omp parallel default(none) shared(matrix_student_grade, student_stats, all_student_means, total_students, N, alloc_failed)
+    {
+        float *thread_local_buffer = (float *)malloc(sizeof(float) * (size_t)N);
+        if (thread_local_buffer == NULL) {
+#pragma omp atomic write
+            alloc_failed = 1;
+        } else {
+#pragma omp for
+            for (int s = 0; s < total_students; s++) {
+                calculate_stats(&matrix_student_grade[s * N], N, &student_stats[s], thread_local_buffer);
+                all_student_means[s] = student_stats[s].mean;
+            }
+            free(thread_local_buffer);
+        }
+    }
+    if (alloc_failed) {
+        printf("Erro ao alocar buffer local para agregacao de alunos!\n");
+        free(student_stats);
+        free(city_stats);
+        free(region_stats);
+        free(all_student_means);
+        free(matrix_student_grade);
+        return MEMORY_ALLOCATION_ERROR;
     }
 
-    for (int c = 0; c < total_cities; c++) {
-        calculate_stats(&all_student_means[c * A], A, &city_stats[c]);
+    alloc_failed = 0;
+#pragma omp parallel default(none) shared(all_student_means, city_stats, total_cities, A, alloc_failed)
+    {
+        float *thread_local_buffer = (float *)malloc(sizeof(float) * (size_t)A);
+        if (thread_local_buffer == NULL) {
+#pragma omp atomic write
+            alloc_failed = 1;
+        } else {
+#pragma omp for
+            for (int c = 0; c < total_cities; c++) {
+                calculate_stats(&all_student_means[c * A], A, &city_stats[c], thread_local_buffer);
+            }
+            free(thread_local_buffer);
+        }
+    }
+    if (alloc_failed) {
+        printf("Erro ao alocar buffer local para agregacao de cidades!\n");
+        free(student_stats);
+        free(city_stats);
+        free(region_stats);
+        free(all_student_means);
+        free(matrix_student_grade);
+        return MEMORY_ALLOCATION_ERROR;
     }
 
     int students_per_region = C * A;
-    for (int r = 0; r < R; r++) {
-        calculate_stats(&all_student_means[r * students_per_region], students_per_region, &region_stats[r]);
+    alloc_failed = 0;
+#pragma omp parallel default(none) shared(all_student_means, region_stats, R, students_per_region, alloc_failed)
+    {
+        float *thread_local_buffer = (float *)malloc(sizeof(float) * (size_t)students_per_region);
+        if (thread_local_buffer == NULL) {
+#pragma omp atomic write
+            alloc_failed = 1;
+        } else {
+#pragma omp for
+            for (int r = 0; r < R; r++) {
+                calculate_stats(&all_student_means[r * students_per_region], students_per_region, &region_stats[r], thread_local_buffer);
+            }
+            free(thread_local_buffer);
+        }
+    }
+    if (alloc_failed) {
+        printf("Erro ao alocar buffer local para agregacao de regioes!\n");
+        free(student_stats);
+        free(city_stats);
+        free(region_stats);
+        free(all_student_means);
+        free(matrix_student_grade);
+        return MEMORY_ALLOCATION_ERROR;
     }
 
-    calculate_stats(all_student_means, total_students, &brasil_stats);
+    float *brasil_buffer = (float *)malloc(sizeof(float) * (size_t)total_students);
+    if (brasil_buffer == NULL) {
+        printf("Erro ao alocar memoria para buffer Brasil!\n");
+        free(student_stats);
+        free(city_stats);
+        free(region_stats);
+        free(all_student_means);
+        free(matrix_student_grade);
+        return MEMORY_ALLOCATION_ERROR;
+    }
+    calculate_stats(all_student_means, total_students, &brasil_stats, brasil_buffer);
+    free(brasil_buffer);
 
     double elapsed_time = timer_stop();
 
@@ -123,6 +183,7 @@ int main(void) {
     free(city_stats);
     free(region_stats);
     free(all_student_means);
-    free_matrix(matrix_student_grade, total_students);
+    free(matrix_student_grade);
+
     return 0;
 }

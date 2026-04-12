@@ -83,14 +83,23 @@ int main(void) {
     Stats *city_stats = (Stats *)malloc(sizeof(Stats) * (size_t)total_cities);
     Stats *region_stats = (Stats *)malloc(sizeof(Stats) * (size_t)R);
     float *all_student_means = (float *)malloc(sizeof(float) * (size_t)total_students);
+    float *student_buffer = (float *)malloc(sizeof(float) * (size_t)N);
+    float *city_buffer = (float *)malloc(sizeof(float) * (size_t)A);
+    int students_per_region = C * A;
+    float *region_buffer = (float *)malloc(sizeof(float) * (size_t)students_per_region);
+    float *brasil_buffer = (float *)malloc(sizeof(float) * (size_t)total_students);
     Stats brasil_stats;
 
-    if (student_stats == NULL || city_stats == NULL || region_stats == NULL || all_student_means == NULL) {
+    if (student_stats == NULL || city_stats == NULL || region_stats == NULL || all_student_means == NULL || student_buffer == NULL || city_buffer == NULL || region_buffer == NULL || brasil_buffer == NULL) {
         printf("Erro ao alocar memoria para estruturas de estatistica!\n");
         free(student_stats);
         free(city_stats);
         free(region_stats);
         free(all_student_means);
+        free(student_buffer);
+        free(city_buffer);
+        free(region_buffer);
+        free(brasil_buffer);
         free_matrix(matrix_student_grade, total_students);
         return MEMORY_ALLOCATION_ERROR;
     }
@@ -98,20 +107,19 @@ int main(void) {
     timer_start();
 
     for (int s = 0; s < total_students; s++) {
-        calculate_stats(matrix_student_grade[s], N, &student_stats[s]);
+        calculate_stats(matrix_student_grade[s], N, &student_stats[s], student_buffer);
         all_student_means[s] = student_stats[s].mean;
     }
 
     for (int c = 0; c < total_cities; c++) {
-        calculate_stats(&all_student_means[c * A], A, &city_stats[c]);
+        calculate_stats(&all_student_means[c * A], A, &city_stats[c], city_buffer);
     }
 
-    int students_per_region = C * A;
     for (int r = 0; r < R; r++) {
-        calculate_stats(&all_student_means[r * students_per_region], students_per_region, &region_stats[r]);
+        calculate_stats(&all_student_means[r * students_per_region], students_per_region, &region_stats[r], region_buffer);
     }
 
-    calculate_stats(all_student_means, total_students, &brasil_stats);
+    calculate_stats(all_student_means, total_students, &brasil_stats, brasil_buffer);
 
     double elapsed_time = timer_stop();
 
@@ -123,6 +131,10 @@ int main(void) {
     free(city_stats);
     free(region_stats);
     free(all_student_means);
+    free(student_buffer);
+    free(city_buffer);
+    free(region_buffer);
+    free(brasil_buffer);
     free_matrix(matrix_student_grade, total_students);
     return 0;
 }
