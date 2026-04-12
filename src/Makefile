@@ -10,6 +10,7 @@ PAR_SRC = studentspar.c
 STATS_SRC = stats.c
 UTILS_SRC = utils.c
 
+SEQ_OBJ = studentsseq.o
 STATS_OBJ = stats.o
 PAR_OBJ = studentspar.o
 UTILS_OBJ = utils.o
@@ -20,8 +21,11 @@ all: build
 
 build: $(SEQ_TARGET) $(PAR_TARGET)
 
-$(SEQ_TARGET): $(SEQ_SRC)
-	$(CC) $(CFLAGS) -o $(SEQ_TARGET) $(SEQ_SRC)
+$(SEQ_TARGET): $(SEQ_OBJ) $(STATS_OBJ) $(UTILS_OBJ)
+	$(CC) $(CFLAGS) -o $(SEQ_TARGET) $(SEQ_OBJ) $(STATS_OBJ) $(UTILS_OBJ) $(LDFLAGS)
+
+$(SEQ_OBJ): $(SEQ_SRC) stats.h utils.h
+	$(CC) $(CFLAGS) -c $(SEQ_SRC)
 
 $(PAR_TARGET): $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ)
 	$(CC) $(CFLAGS) -o $(PAR_TARGET) $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ) $(LDFLAGS)
@@ -44,6 +48,6 @@ run-par: $(PAR_TARGET)
 	./$(PAR_TARGET)
 
 clean:
-	rm -f $(SEQ_TARGET) $(PAR_TARGET) $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ)
+	rm -f $(SEQ_TARGET) $(PAR_TARGET) $(SEQ_OBJ) $(PAR_OBJ) $(STATS_OBJ) $(UTILS_OBJ)
 
 .DEFAULT_GOAL := all
