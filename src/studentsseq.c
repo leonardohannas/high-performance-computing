@@ -50,7 +50,8 @@ void populate_matrix(void** matrix, int R, int C, int A, int N, int seed) {
     for (int i = 0; i < R * C * A; i++) {
         for (int j = 0; j < N; j++) {
             int r = rand() % 1001;   // inteiro entre 0 e 1000
-            ((int*)matrix[i])[j] = r / 10.0;
+            ((int*)matrix[i])[j] = r;
+            ((float*)matrix[i])[j] = r / 10.0;
         }
     }
 }
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < R * C * A; i++) {
         printf("Student %d: ", i);
         for (int j = 0; j < N; j++) {
-            printf("%.1f ", ((int*)matrix_student_grade[i])[j]);
+            printf("%f ", ((float*)matrix_student_grade[i])[j]);
         }
         printf("\n");
     }
