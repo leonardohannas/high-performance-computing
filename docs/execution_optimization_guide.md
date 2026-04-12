@@ -25,6 +25,7 @@ Por que ela e importante:
 1. Representa o custo de computacao em um unico nucleo.
 2. Usa o mesmo layout 1D contiguo da versao paralela, mantendo a comparacao justa.
 3. Evita distorcer speedup com diferencas de estrutura de dados.
+4. Mantem legibilidade alta com alocacao simples por `malloc`.
 
 ## 2) Versao Paralela (OpenMP)
 
@@ -42,6 +43,7 @@ Por que ela tende a ser melhor:
 2. Usa matriz 1D contigua para melhor localidade de cache.
 3. Usa `rand_r` para geracao thread-safe.
 4. Reutiliza buffers temporarios por thread para reduzir overhead de heap.
+5. Preserva legibilidade mesmo com otimizações (sem aritmetica de padding em alocacao).
 
 ## Modos de otimizacao (casos de execucao)
 

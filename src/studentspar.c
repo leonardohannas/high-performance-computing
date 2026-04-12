@@ -1,4 +1,3 @@
-#define MEMORY_ALLOCATION_ERROR 1
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,14 +27,9 @@ void read_input_file(const char *filename, int *R, int *C, int *A, int *N, int *
 }
 
 float *allocate_matrix(int total_students, int N) {
-    size_t total_elements = (size_t)total_students * (size_t)N;
-    size_t total_bytes = total_elements * sizeof(float);
-    size_t alignment = 64;
-    size_t padded_bytes = (total_bytes + alignment - 1) & ~(alignment - 1);
-
-    float *matrix_student_grade = (float *)aligned_alloc(alignment, padded_bytes);
+    float *matrix_student_grade = (float *)malloc(sizeof(float) * (size_t)(total_students * N));
     if (matrix_student_grade == NULL) {
-        printf("Erro ao alocar memoria alinhada para a matriz de notas dos alunos!\n");
+        printf("Erro ao alocar memoria para a matriz de notas dos alunos!\n");
         return NULL;
     }
     return matrix_student_grade;

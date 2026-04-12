@@ -51,7 +51,7 @@ Importante:
 
 1. Nao foram usados intrinsics manuais (AVX/SSE/NEON explicitos).
 2. A abordagem usa auto-vetorizacao orientada por compilador.
-3. O ganho esperado vem da combinacao de alinhamento, aliasing reduzido e contratacao de operacoes de ponto flutuante.
+3. O ganho esperado vem da combinacao de layout contiguo, aliasing reduzido e contratacao de operacoes de ponto flutuante.
 
 ### 3. Paralelizacao com OpenMP em [src/studentspar.c](../src/studentspar.c)
 
@@ -84,7 +84,7 @@ A matriz de notas da versao paralela foi convertida para bloco 1D contiguo:
 1. Melhor localidade de cache
 2. Menos indirecoes de ponteiro
 3. Melhor oportunidade de prefetch e vetorizacao do compilador
-4. Alinhamento em linha de cache com `aligned_alloc(64, ...)`
+4. Implementacao mantida simples com `malloc` em bloco 1D contiguo
 
 ### 6. Buffers locais por thread
 
@@ -100,7 +100,7 @@ Nas regioes paralelas de agregacao:
 No [src/Makefile](../src/Makefile):
 
 1. `OPTFLAGS ?= -O3`
-2. `NATIVEFLAGS ?=` para tuning opcional (ex.: `-march=native`)
+2. `NATIVEFLAGS ?= -march=native -ffast-math` (sobrescrevivel para modo portavel)
 3. `-lrt` aplicado apenas em Linux
 4. `-fopenmp` aplicado no alvo paralelo
 
@@ -153,6 +153,11 @@ Para teste local em maquina alvo, habilitar arquitetura nativa:
 2. `make NATIVEFLAGS='-march=native' build`
 
 Isso pode aumentar desempenho, mas reduz portabilidade binaria entre CPUs diferentes.
+
+Para forcar modo portavel, desabilitando tuning nativo:
+
+1. `make clean`
+2. `make NATIVEFLAGS= build`
 
 ## Execucao Recomendada
 
