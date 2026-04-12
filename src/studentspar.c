@@ -1,7 +1,9 @@
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "stats.h"
+#include "utils.h"
 
 #define MEMORY_ALLOCATION_ERROR 1
 #define INPUT_FILE_PATH "../docs/exemplo_entrada_0.txt"
@@ -62,6 +64,8 @@ void populate_matrix(float **matrix, int total_students, int N, int seed) {
 }
 
 int main(void) {
+    setlocale(LC_ALL, "");
+
     int R, C, A, N, T, seed;
     read_input_file(INPUT_FILE_PATH, &R, &C, &A, &N, &T, &seed);
 
@@ -91,6 +95,8 @@ int main(void) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
+    timer_start();
+
     for (int s = 0; s < total_students; s++) {
         calculate_stats(matrix_student_grade[s], N, &student_stats[s]);
         all_student_means[s] = student_stats[s].mean;
@@ -107,11 +113,11 @@ int main(void) {
 
     calculate_stats(all_student_means, total_students, &brasil_stats);
 
+    double elapsed_time = timer_stop();
+
     printf("Entrada: R=%d, C=%d, A=%d, N=%d, T=%d, seed=%d\n", R, C, A, N, T, seed);
-    printf("--- BRASIL STATS ---\n");
-    printf("Media: %.1f, Min: %.1f, Max: %.1f, Mediana: %.1f, DsvPdr: %.1f\n", brasil_stats.mean, brasil_stats.min, brasil_stats.max, brasil_stats.median, brasil_stats.stddev);
-    printf("\n--- REGION 0 STATS ---\n");
-    printf("Media: %.1f, Min: %.1f, Max: %.1f, Mediana: %.1f, DsvPdr: %.1f\n", region_stats[0].mean, region_stats[0].min, region_stats[0].max, region_stats[0].median, region_stats[0].stddev);
+    print_formatted_results(city_stats, region_stats, &brasil_stats, R, C);
+    printf("Tempo de resposta em segundos, sem considerar E/S: %.3fs\n", elapsed_time);
 
     free(student_stats);
     free(city_stats);
