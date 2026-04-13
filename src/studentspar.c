@@ -8,6 +8,7 @@
 #include "utils.h"
 
 #define MEMORY_ALLOCATION_ERROR 1
+#define INVALID_INPUT_PARAMETERS 2
 #define INPUT_FILE_PATH "../docs/exemplo_entrada_0.txt"
 
 void read_input_file(const char *filename, int *R, int *C, int *A, int *N, int *T, int *seed) {
@@ -20,7 +21,7 @@ void read_input_file(const char *filename, int *R, int *C, int *A, int *N, int *
     if (fscanf(f, "%d %d %d %d %d %d", R, C, A, N, T, seed) != 6) {
         printf("Erro ao ler parametros do arquivo!\n");
         fclose(f);
-        exit(MEMORY_ALLOCATION_ERROR);
+        exit(INVALID_INPUT_PARAMETERS);
     }
 
     fclose(f);
